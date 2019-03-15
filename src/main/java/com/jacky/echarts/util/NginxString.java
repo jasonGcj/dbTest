@@ -21,7 +21,6 @@ public class NginxString {
     public static Log splitLog(String log){ //根据分割符得到数组
 //        String log = "www.pinyougou.com|||192.168.88.1|||7/Oct/2019 14:25:36 +8000|||get|||200|||http1.1";
 
-        // TODO:优化 数组转为对象格式
         String[] arr = log.split(token);
         Log log1 = new Log(arr[2],arr[1]);
         log1.setHost(arr[0]);
