@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>页面</title>
+    <script type="text/javascript" src="../js/angular.min.js"></script>
+    <script type="text/javascript" src="../js/echarts.min.js"></script>
+</head>
+<body ng-app="myApp" ng-controller="myController">
+
+<!-- echarts 图表展示区 -->
+<line ng-if="data" id="main" legend="legend" item="item" data="data"></line>
+
+<!-- 图表数据脚本 -->
+<script type="text/javascript">
+    var app = angular.module("myApp",[]);
+
+    app.controller("myController",function ($scope,$http) {
+        var now = new Date();//获取当前时间
+        var nowMs = now.getTime();//获取当前时间的毫秒数
+        var times = [];
+        for(var i = 7;i>0;i--){
+            var beforeMs =  nowMs -  1000 * 60 * 60 * 24 * parseInt(i);//前几天，n就取几，整数
+            var beforeDate = new Date(beforeMs)
+            var  day =  beforeDate.getDate();
+            var month =   beforeDate.getMonth()+1;
+            var year =  beforeDate.getFullYear();
+            if(month<10){
+                month = "0"+month;
+            }
+            if(day<10){
+                day = "0"+day;
+            }
+            times.push(year+"-"+month+"-"+day);
+        }
+        $scope.item = times;
+        $http.post("/getZhl", $scope.item).success(
+            function (response) {
+                $scope.data=response;
+            }
+        );
+    });
+
+    app.directive('line', function() {
+        return {
+            scope: {
+                id: "@",
+                legend: "=",
+                item: "=",
+                data: "="
+            },
+            restrict: 'E',
+            template: '<div style="height:400px;"></div>',
+            replace: true,
+            link: function($scope, element, attrs, controller) {
+                var option = {
+
+                    title: {
+                        text: '品优购当前日期前七天转化率'
+                    },
+                    // 提示框，鼠标悬浮交互时的信息提示
+                    tooltip: {
+                        trigger: 'item'
+                    },
+                    // 图例
+                    legend: {
+                        data: ["转化率","访问量","成交单数"]
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    toolbox: {
+                        feature: {
+                            saveAsImage: {}
+                        }
+                    },
+                    // 横轴坐标轴
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: $scope.item
+                    },
+                    // 纵轴坐标轴
+                    yAxis: [{
+                        type: 'value'
+                    }],
+                    // 数据内容数组
+                    series: [
+                        {name:"转化率",type:"line",data:$scope.data.zhl},
+                        {name:"访问量",type:"line",data:$scope.data.accessSum},
+                        {name:"成交单数",type:"line",data:$scope.data.successSum}
+                        ]
+                };
+                var myChart = echarts.init(document.getElementById($scope.id),'macarons');
+                myChart.setOption(option);
+            }
+        };
+    });
+</script>
+</body>
+</html>
